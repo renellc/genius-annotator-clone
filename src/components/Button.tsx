@@ -5,12 +5,18 @@ type ButtonProps = DetailedHTMLProps<
   HTMLButtonElement
 >;
 
-export const Button = (props: ButtonProps) => (
-  <button
-    className={[
-      "px-3 py-2 text-white rounded-md",
-      "bg-slate-900 hover:bg-slate-800 active:bg-slate-600",
-    ].join(" ")}
-    {...props}
-  />
-);
+export const Button = (props: ButtonProps) => {
+  return (
+    <button
+      {...props}
+      className={
+        [
+          "px-3 py-2 text-white rounded-md",
+          "bg-slate-900 hover:bg-slate-800 active:bg-slate-600",
+        ].join(" ") +
+          " " +
+          props.className ?? ""
+      }
+    />
+  );
+};

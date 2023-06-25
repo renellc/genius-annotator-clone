@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { useCreateViewStore } from "../../stores";
+
 import { AddLyrics } from "./AddLyrics";
+import { AddAnnotations } from "./AddAnnotations";
 
 export const Create = () => {
   const [activeScreen, goStart] = useCreateViewStore((state) => [
@@ -18,6 +20,12 @@ export const Create = () => {
       return (
         <div className="h-full">
           <AddLyrics />
+        </div>
+      );
+    case "add-annotations":
+      return (
+        <div className="h-full">
+          <AddAnnotations />
         </div>
       );
     default:
