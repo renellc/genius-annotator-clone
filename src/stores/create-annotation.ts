@@ -4,35 +4,39 @@ import { v4 as UUIDV4 } from "uuid";
 import { create } from "zustand";
 
 type CreateAnnotationState = {
-  lyrics: string;
+  lyrics: { lineNumber: number; line: string; annotationId?: string }[];
   annotations: Record<string, string>;
-  lines: Record<string, string>;
 };
 
 interface CreateAnnotationActions {
   setLyrics: (text: string) => void;
-  addAnnotation: (line: string, annotation: string) => void;
+  addAnnotation: (lineNumber: number, annotation: string) => void;
 }
 
 const createAnnotationStore = immer<
   CreateAnnotationState & CreateAnnotationActions
 >((set) => ({
-  lyrics: "",
-  lines: {},
+  lyrics: [],
   annotations: {},
   setLyrics: (text) =>
     set((state) => {
-      state.lyrics = text;
+      state.lyrics = text
+        .split("\n")
+        .map((line, idx) => ({ lineNumber: idx, line }));
     }),
-  addAnnotation: (line, annotation) =>
+  addAnnotation: (lineNumber, annotation) =>
     set((state) => {
-      if (!state.lines[line]) {
+      const lineIndex = state.lyrics.findIndex((curr) => {
+        return curr.lineNumber === lineNumber;
+      });
+
+      if (lineIndex < 0 || state.lyrics[lineIndex].annotationId !== undefined) {
         return;
       }
 
       const annotationId = UUIDV4();
       state.annotations[annotationId] = annotation;
-      state.lines[line] = annotationId;
+      state.lyrics[lineIndex].annotationId = annotationId;
     }),
 }));
 

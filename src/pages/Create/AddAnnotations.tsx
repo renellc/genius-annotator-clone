@@ -1,10 +1,8 @@
-import { Button } from "@/components";
+import { Button, Lyrics } from "@/components";
 import { useCreateAnnotationStore } from "@/stores";
 
 export const AddAnnotations = () => {
   const lyrics = useCreateAnnotationStore((state) => state.lyrics);
-
-  console.log(lyrics.split("\n"));
 
   return (
     <div className="grid grid-cols-2 gap-x-4">
@@ -12,14 +10,10 @@ export const AddAnnotations = () => {
         <h1>Add Annotations</h1>
       </div>
 
-      <div
-        className="w-full flex flex-col items-center justify-center leading-7"
-        dangerouslySetInnerHTML={{
-          __html: lyrics
-            .split("\n")
-            .map((line) => `${line}<br />`)
-            .join(""),
-        }}
+      <Lyrics
+        lyrics={lyrics}
+        className="w-full"
+        onLyricsSelected={(lyric) => console.log(lyric)}
       />
 
       <div className="w-full flex justify-center">Annotation View</div>
