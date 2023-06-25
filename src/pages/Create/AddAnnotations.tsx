@@ -1,8 +1,43 @@
 import { Button, Lyrics } from "@/components";
+import { Modal } from "@/components/Modal";
 import { useCreateAnnotationStore } from "@/stores";
+import { FormEvent, useState } from "react";
 
 export const AddAnnotations = () => {
-  const lyrics = useCreateAnnotationStore((state) => state.lyrics);
+  const [lyrics, annotations] = useCreateAnnotationStore((state) => [
+    state.lyrics,
+    state.annotations,
+  ]);
+  const addAnnotation = useCreateAnnotationStore(
+    (state) => state.addAnnotation
+  );
+
+  const [createAnnotationModalOpen, setCreateAnnotationModalOpen] =
+    useState(false);
+
+  const [selectedLyric, setSelectedLyric] = useState<{
+    lyric: (typeof lyrics)[number];
+    selectedText: string;
+  } | null>(null);
+
+  const [newAnnotation, setNewAnnotation] = useState("");
+
+  function onSaveAnnotation(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (selectedLyric === null || newAnnotation === "") {
+      return;
+    }
+
+    addAnnotation(
+      selectedLyric.lyric.lineNumber,
+      selectedLyric.selectedText,
+      newAnnotation
+    );
+    setNewAnnotation("");
+    setSelectedLyric(null);
+    setCreateAnnotationModalOpen(false);
+  }
 
   return (
     <div className="grid grid-cols-2 gap-x-4">
@@ -13,7 +48,10 @@ export const AddAnnotations = () => {
       <Lyrics
         lyrics={lyrics}
         className="w-full"
-        onLyricsSelected={(lyric) => console.log(lyric)}
+        onLyricsSelected={(lyric) => {
+          setCreateAnnotationModalOpen(true);
+          setSelectedLyric(lyric);
+        }}
       />
 
       <div className="w-full flex justify-center">Annotation View</div>
@@ -21,6 +59,42 @@ export const AddAnnotations = () => {
       <div className="col-span-2 flex items-center justify-center">
         <Button>Save</Button>
       </div>
+
+      <Modal
+        modalId="createAnnotationModal"
+        open={createAnnotationModalOpen && selectedLyric !== null}
+        onClose={() => setCreateAnnotationModalOpen(false)}
+      >
+        <details>
+          <summary>Selected Lyrics</summary>
+          {selectedLyric?.lyric.line}
+        </details>
+
+        <form
+          className="flex flex-col"
+          onSubmit={onSaveAnnotation}
+        >
+          <label className="flex flex-col">
+            <span>Your Annotation</span>
+            <textarea
+              className={[
+                "resize-none whitespace-pre-wrap overflow-x-hidden",
+                "min-h-[40rem] min-w-[40rem]",
+                "border border-slate-800 rounded-md",
+                "px-3 py-2",
+              ].join(" ")}
+              onChange={(event) => setNewAnnotation(event.currentTarget.value)}
+            />
+          </label>
+
+          <Button
+            className="w-max mt-4"
+            type="submit"
+          >
+            Save
+          </Button>
+        </form>
+      </Modal>
     </div>
   );
 };
