@@ -1,12 +1,26 @@
-import { Button } from "@/components/Button";
-import { useCreateViewStore } from "../../stores";
+import { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
+
+import { Button } from "@/components/Button";
+import { useCreateAnnotationStore, useCreateViewStore } from "@/stores";
 
 export const AddLyrics = () => {
   const [goNext] = useCreateViewStore((state) => [state.goNext]);
+  const setLyrics = useCreateAnnotationStore((state) => state.setLyrics);
+
+  const [text, setText] = useState("");
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setLyrics(text.trim());
+    goNext();
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center gap-y-2">
+    <form
+      className="flex flex-col items-center justify-center gap-y-2"
+      onSubmit={onSubmit}
+    >
       <label className="w-1/4 flex flex-col gap-y-1">
         <span>Your Lyrics</span>
         <textarea
@@ -16,14 +30,17 @@ export const AddLyrics = () => {
             "border border-slate-800 rounded-md",
             "px-3 py-2",
           ].join(" ")}
+          value={text}
+          required
           placeholder="Your lyrics here..."
+          onChange={(event) => setText(event.currentTarget.value)}
         />
       </label>
 
       <div className="flex items-center gap-x-8">
         <Link to="/">Cancel</Link>
-        <Button onClick={goNext}>Next</Button>
+        <Button type="submit">Next</Button>
       </div>
-    </div>
+    </form>
   );
 };

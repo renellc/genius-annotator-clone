@@ -23,7 +23,9 @@
       "@/pages": ["./src/pages"],
       "@/pages/*": ["./src/pages/*"],
       "@/components": ["./src/components"],
-      "@/components/*": ["./src/components/*"]
+      "@/components/*": ["./src/components/*"],
+      "@/stores": ["./src/stores"],
+      "@/stores/*": ["./src/stores/*"]
     }
   },
   "include": ["src"],
