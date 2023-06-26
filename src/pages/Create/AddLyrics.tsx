@@ -6,7 +6,9 @@ import { useCreateAnnotationStore, useCreateViewStore } from "@/stores";
 
 export const AddLyrics = () => {
   const [goNext] = useCreateViewStore((state) => [state.goNext]);
-  const setLyrics = useCreateAnnotationStore((state) => state.setLyrics);
+  const setLyrics = useCreateAnnotationStore(
+    (state) => state.actions.setLyrics
+  );
 
   const [text, setText] = useState("");
 

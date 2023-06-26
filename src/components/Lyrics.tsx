@@ -1,41 +1,42 @@
 import { useId } from "react";
 
+import { type LyricSection } from "@/lib";
+
 interface LyricLineProps {
-  lyric: { lineNumber: number; line: string; annotationId?: string };
-  onAnnotationClick?: (line: LyricLineProps["lyric"]) => void;
+  lyric: LyricSection;
+  onAnnotationClick?: (lyric: LyricSection) => void;
 }
 
 const LyricLine = (props: LyricLineProps) => {
   const { lyric, onAnnotationClick } = props;
 
-  if (lyric.line === "") {
-    return <br />;
-  }
+  switch (lyric.type) {
+    case "line": {
+      if (lyric.text === "") {
+        return <div className="my-6"></div>;
+      } else if (!lyric.annotation) {
+        return <p data-lyric-id={lyric.id}>{lyric.text}</p>;
+      }
 
-  if (!lyric.annotationId) {
-    return (
-      <>
-        {lyric.line}
-        <br />
-      </>
-    );
+      return (
+        <p data-lyric-id={lyric.id}>
+          <span
+            className="cursor-pointer bg-gray-300 py-1 hover:bg-gray-400"
+            onClick={() => onAnnotationClick && onAnnotationClick(lyric)}
+          >
+            {lyric.text}
+          </span>
+        </p>
+      );
+    }
+    case "block": {
+      return null;
+    }
   }
-
-  return (
-    <>
-      <span
-        className="cursor-pointer bg-gray-300 py-1 hover:bg-gray-400"
-        onClick={() => onAnnotationClick && onAnnotationClick(lyric)}
-      >
-        {lyric.line}
-      </span>
-      <br />
-    </>
-  );
 };
 
 interface LyricsProps {
-  lyrics: { lineNumber: number; line: string; annotationId?: string }[];
+  lyrics: LyricSection[];
   className?: string;
   onLyricsSelected?: (input: {
     lyric: LyricsProps["lyrics"][number];
@@ -52,51 +53,74 @@ export const Lyrics = (props: LyricsProps) => {
     const selection = window.getSelection();
 
     // If the mouse event was simply just clicking on the container
-    if (!selection || selection.type !== "Range") {
+    if (!selection || selection.type !== "Range" || !onLyricsSelected) {
       return;
     }
 
     // If the selection is not within the container
     if (
-      !selection.anchorNode?.parentElement ||
-      selection.anchorNode.parentElement.id !== containerId
+      !selection.anchorNode?.parentElement?.parentElement ||
+      selection.anchorNode.parentElement.parentElement.id !== containerId
     ) {
       return;
     }
 
-    const { startContainer } = selection.getRangeAt(0);
-    const lyricIdx = lyrics.findIndex((curr) => {
-      return curr.line === startContainer.textContent;
-    });
+    const selectedText = selection.toString();
+    const range = selection.getRangeAt(0);
 
-    if (lyricIdx < 0) {
+    // We check what the common ancestor is for the selection to determine if
+    // the user's selection is only one line or if it spans multiple lines.
+    //
+    // Refer to https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+    // for more info
+    const commonAncestorNodeType = range.commonAncestorContainer.nodeType;
+    if (commonAncestorNodeType === 1) {
+      // The ancestor node is an element (the lyrics container), which means we
+      // have a selection that spans multiple lines
+      // TODO
+    } else if (commonAncestorNodeType === 3) {
+      // The ancestor node is just text, which means the selection is just a
+      // single line
+
+      // Since each lyric is rendered in a <p> tag with a lyric id, we can
+      // assume the parent is a <p> tag and has the lyric id.
+      const pContainerElement = range.commonAncestorContainer
+        .parentElement as HTMLParagraphElement;
+      const lyricId = pContainerElement.dataset.lyricId;
+
+      const lyricSection = lyrics.findIndex((curr) => {
+        return curr.type === "line" && curr.id === lyricId;
+      });
+
+      if (lyricSection < 0) {
+        return;
+      }
+
+      onLyricsSelected({ lyric: lyrics[lyricSection], selectedText });
+    } else {
+      // We just return because we are only concerned with the parent being an
+      // element or a text node
       return;
     }
-
-    onLyricsSelected &&
-      onLyricsSelected({
-        lyric: lyrics[lyricIdx],
-        selectedText: selection.toString().split("\n")[0],
-      });
   }
 
   return (
     <div
-      className={`flex flex-col items-center justify-center leading-7 ${
-        className ?? ""
-      }`}
+      id={containerId}
+      className={[
+        "w-max place-self-center",
+        "flex flex-col justify-center",
+        "leading-7",
+        className ? className : "",
+      ].join(" ")}
       onMouseUp={onDoneSelectLyrics}
     >
-      <p id={containerId}>
-        {lyrics.map((lyric) => (
-          <LyricLine
-            key={`${lyric.lineNumber}-${
-              lyric.line === "" ? "break" : lyric.line
-            }`}
-            lyric={lyric}
-          />
-        ))}
-      </p>
+      {lyrics.map((lyric) => (
+        <LyricLine
+          key={lyric.id}
+          lyric={lyric}
+        />
+      ))}
     </div>
   );
 };

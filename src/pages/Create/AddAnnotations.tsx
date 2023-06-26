@@ -1,15 +1,15 @@
 import { Button, Lyrics } from "@/components";
 import { Modal } from "@/components/Modal";
 import { useCreateAnnotationStore } from "@/stores";
-import { FormEvent, useState } from "react";
+import { FormEvent, Fragment, useState } from "react";
 
 export const AddAnnotations = () => {
-  const [lyrics, annotations] = useCreateAnnotationStore((state) => [
-    state.lyrics,
-    state.annotations,
-  ]);
-  const addAnnotation = useCreateAnnotationStore(
-    (state) => state.addAnnotation
+  const [lyrics] = useCreateAnnotationStore((state) => [state.lyrics]);
+  const [addAnnotationLine, addAnnotationBlock] = useCreateAnnotationStore(
+    (state) => [
+      state.actions.addAnnotationToLine,
+      state.actions.addAnnotationToBlock,
+    ]
   );
 
   const [createAnnotationModalOpen, setCreateAnnotationModalOpen] =
@@ -29,7 +29,11 @@ export const AddAnnotations = () => {
       return;
     }
 
-    addAnnotation(
+    if (selectedLyric.lyric.type !== "line") {
+      return;
+    }
+
+    addAnnotationLine(
       selectedLyric.lyric.lineNumber,
       selectedLyric.selectedText,
       newAnnotation
@@ -67,7 +71,18 @@ export const AddAnnotations = () => {
       >
         <details>
           <summary>Selected Lyrics</summary>
-          {selectedLyric?.lyric.line}
+          {selectedLyric?.lyric.type === "line" ? (
+            <>{selectedLyric.lyric.text}</>
+          ) : (
+            <>
+              {selectedLyric?.lyric.text.map((lyric) => (
+                <Fragment key={lyric.id}>
+                  {lyric.text}
+                  <br />
+                </Fragment>
+              ))}
+            </>
+          )}
         </details>
 
         <form
