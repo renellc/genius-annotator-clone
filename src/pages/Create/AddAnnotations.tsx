@@ -1,5 +1,6 @@
 import { Button, Lyrics } from "@/components";
 import { Modal } from "@/components/Modal";
+import { LyricSection, LyricSectionLine } from "@/lib";
 import { useCreateAnnotationStore } from "@/stores";
 import { FormEvent, Fragment, useState } from "react";
 
@@ -15,10 +16,13 @@ export const AddAnnotations = () => {
   const [createAnnotationModalOpen, setCreateAnnotationModalOpen] =
     useState(false);
 
-  const [selectedLyric, setSelectedLyric] = useState<{
-    lyric: (typeof lyrics)[number];
-    selectedText: string;
-  } | null>(null);
+  const [selectedLyric, setSelectedLyric] = useState<
+    {
+      lyric: LyricSectionLine | LyricSectionLine[];
+      selectedText: string;
+      fromLineNumberIdx?: number,
+      toLineNumberIdx?: number
+    } | null>(null);
 
   const [newAnnotation, setNewAnnotation] = useState("");
 
@@ -29,15 +33,21 @@ export const AddAnnotations = () => {
       return;
     }
 
-    if (selectedLyric.lyric.type !== "line") {
-      return;
+    if (selectedLyric.fromLineNumberIdx && selectedLyric.toLineNumberIdx) {
+      addAnnotationBlock({
+        fromLineNumberIdx: selectedLyric.fromLineNumberIdx,
+        toLineNumberIdx: selectedLyric.toLineNumberIdx,
+        selectedText: selectedLyric.selectedText,
+        annotation: newAnnotation,
+      });
+    } else {
+      addAnnotationLine(
+        selectedLyric.lyric as LyricSectionLine,
+        selectedLyric.selectedText,
+        newAnnotation,
+      );
     }
 
-    addAnnotationLine(
-      selectedLyric.lyric.lineNumber,
-      selectedLyric.selectedText,
-      newAnnotation
-    );
     setNewAnnotation("");
     setSelectedLyric(null);
     setCreateAnnotationModalOpen(false);
@@ -52,9 +62,19 @@ export const AddAnnotations = () => {
       <Lyrics
         lyrics={lyrics}
         className="w-full"
-        onLyricsSelected={(lyric) => {
+        onLineSelected={({ lyric, selectedText }) => {
           setCreateAnnotationModalOpen(true);
-          setSelectedLyric(lyric);
+          setSelectedLyric({ lyric, selectedText });
+        }}
+        onBlockSelected={({ fromLineNumberIdx, toLineNumberIdx, selectedText }) => {
+          setCreateAnnotationModalOpen(true);
+          console.log(fromLineNumberIdx, toLineNumberIdx);
+          setSelectedLyric({
+            lyric: lyrics.slice(fromLineNumberIdx, toLineNumberIdx) as LyricSectionLine[],
+            selectedText,
+            fromLineNumberIdx,
+            toLineNumberIdx,
+          });
         }}
       />
 
@@ -71,11 +91,11 @@ export const AddAnnotations = () => {
       >
         <details>
           <summary>Selected Lyrics</summary>
-          {selectedLyric?.lyric.type === "line" ? (
-            <>{selectedLyric.lyric.text}</>
+          {!Array.isArray(selectedLyric?.lyric) ? (
+            <>{selectedLyric?.lyric.text}</>
           ) : (
             <>
-              {selectedLyric?.lyric.text.map((lyric) => (
+              {selectedLyric?.lyric.map((lyric) => (
                 <Fragment key={lyric.id}>
                   {lyric.text}
                   <br />

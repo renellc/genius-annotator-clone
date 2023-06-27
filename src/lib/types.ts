@@ -6,13 +6,13 @@ type LyricSectionCommon = {
   };
 };
 
-type LyricSectionLine = LyricSectionCommon & {
+export type LyricSectionLine = LyricSectionCommon & {
   type: "line";
   text: string;
   lineNumber: number;
 };
 
-type LyricSectionBlock = LyricSectionCommon & {
+export type LyricSectionBlock = LyricSectionCommon & {
   type: "block";
   text: LyricSectionLine[];
   startingLineNumber: number;

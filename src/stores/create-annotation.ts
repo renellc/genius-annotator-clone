@@ -2,7 +2,7 @@ import { immer } from "zustand/middleware/immer";
 
 import { v4 as UUIDV4 } from "uuid";
 import { create } from "zustand";
-import { type LyricSection } from "@/lib";
+import type { LyricSection, LyricSectionLine } from "@/lib";
 
 type CreateAnnotationState = {
   lyrics: LyricSection[];
@@ -11,13 +11,13 @@ type CreateAnnotationState = {
 interface CreateAnnotationActions {
   setLyrics: (text: string) => void;
   addAnnotationToLine: (
-    lineNumber: number,
+    lyric: LyricSectionLine,
     selectedText: string,
     annotation: string
   ) => void;
   addAnnotationToBlock: (input: {
-    startingLineNumber: number;
-    endingLineNumber: number;
+    fromLineNumberIdx: number;
+    toLineNumberIdx: number;
     selectedText: string;
     annotation: string;
   }) => void;
@@ -38,17 +38,38 @@ const createAnnotationStore = immer<
           text: line,
         }));
       }),
-    addAnnotationToLine: (lineNumber, selectedText, annotation) =>
+    addAnnotationToLine: (line, selectedText, annotation) =>
       set((state) => {
-        if (!state.lyrics[lineNumber]) {
+        const lyricIdx = state.lyrics.findIndex((curr) => line.id === curr.id);
+        if (lyricIdx < 0) {
           return;
         }
 
-        state.lyrics[lineNumber].annotation = {
+        state.lyrics[lyricIdx].annotation = {
           selectedText: selectedText,
           content: annotation,
         };
       }),
+    addAnnotationToBlock: (input) => set((state) => {
+      const { fromLineNumberIdx, toLineNumberIdx, selectedText, annotation } = input;
+      if (fromLineNumberIdx >= toLineNumberIdx) {
+        return;
+      }
+
+      const toDelete = toLineNumberIdx - fromLineNumberIdx + 1;
+      const lines = state.lyrics.splice(fromLineNumberIdx, toDelete) as LyricSectionLine[];
+      state.lyrics.splice(fromLineNumberIdx, 0, {
+        id: UUIDV4(),
+        type: "block",
+        text: lines,
+        startingLineNumber: lines[0].lineNumber,
+        endingLineNumber: lines[lines.length - 1].lineNumber,
+        annotation: {
+          selectedText,
+          content: annotation,
+        },
+      });
+    }),
   },
 }));
 
