@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Portal } from "./Portal";
 import { Button } from ".";
 
-type ModalProps = {
+export type ModalProps = {
   modalId: string;
   open?: boolean;
   onClose?: () => void;

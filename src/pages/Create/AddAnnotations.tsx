@@ -1,8 +1,7 @@
-import { Button, Lyrics } from "@/components";
-import { Modal } from "@/components/Modal";
-import { LyricSection, LyricSectionLine } from "@/lib";
+import { Button, CreateAnnotationModal, CreateAnnotationModalProps, Lyrics } from "@/components";
+import { LyricSectionLine } from "@/lib";
 import { useCreateAnnotationStore } from "@/stores";
-import { FormEvent, Fragment, useState } from "react";
+import { useState } from "react";
 
 export const AddAnnotations = () => {
   const [lyrics] = useCreateAnnotationStore((state) => [state.lyrics]);
@@ -24,12 +23,11 @@ export const AddAnnotations = () => {
       toLineNumberIdx?: number
     } | null>(null);
 
-  const [newAnnotation, setNewAnnotation] = useState("");
-
-  function onSaveAnnotation(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (selectedLyric === null || newAnnotation === "") {
+  function onSaveAnnotation(input: Parameters<
+    CreateAnnotationModalProps["onSaveAnnotation"]
+  >[0]) {
+    const { selectedLyric, annotation } = input;
+    if (selectedLyric === null || annotation === "") {
       return;
     }
 
@@ -38,17 +36,16 @@ export const AddAnnotations = () => {
         fromLineNumberIdx: selectedLyric.fromLineNumberIdx,
         toLineNumberIdx: selectedLyric.toLineNumberIdx,
         selectedText: selectedLyric.selectedText,
-        annotation: newAnnotation,
+        annotation: annotation,
       });
     } else {
       addAnnotationLine(
         selectedLyric.lyric as LyricSectionLine,
         selectedLyric.selectedText,
-        newAnnotation,
+        annotation,
       );
     }
 
-    setNewAnnotation("");
     setSelectedLyric(null);
     setCreateAnnotationModalOpen(false);
   }
@@ -84,52 +81,13 @@ export const AddAnnotations = () => {
         <Button>Save</Button>
       </div>
 
-      <Modal
+      <CreateAnnotationModal
         modalId="createAnnotationModal"
         open={createAnnotationModalOpen && selectedLyric !== null}
         onClose={() => setCreateAnnotationModalOpen(false)}
-      >
-        <details>
-          <summary>Selected Lyrics</summary>
-          {!Array.isArray(selectedLyric?.lyric) ? (
-            <>{selectedLyric?.lyric.text}</>
-          ) : (
-            <>
-              {selectedLyric?.lyric.map((lyric) => (
-                <Fragment key={lyric.id}>
-                  {lyric.text}
-                  <br />
-                </Fragment>
-              ))}
-            </>
-          )}
-        </details>
-
-        <form
-          className="flex flex-col"
-          onSubmit={onSaveAnnotation}
-        >
-          <label className="flex flex-col">
-            <span>Your Annotation</span>
-            <textarea
-              className={[
-                "resize-none whitespace-pre-wrap overflow-x-hidden",
-                "min-h-[40rem] min-w-[40rem]",
-                "border border-slate-800 rounded-md",
-                "px-3 py-2",
-              ].join(" ")}
-              onChange={(event) => setNewAnnotation(event.currentTarget.value)}
-            />
-          </label>
-
-          <Button
-            className="w-max mt-4"
-            type="submit"
-          >
-            Save
-          </Button>
-        </form>
-      </Modal>
+        selectedLyric={selectedLyric}
+        onSaveAnnotation={onSaveAnnotation}
+      />
     </div>
   );
 };
