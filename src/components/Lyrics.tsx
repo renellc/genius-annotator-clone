@@ -1,6 +1,7 @@
 import { useId } from "react";
 
 import type { LyricSectionLine, LyricSection } from "@/lib";
+import { useSelection } from "../hooks";
 
 interface LyricLineProps {
   section: LyricSection;
@@ -73,25 +74,15 @@ export const Lyrics = (props: LyricsProps) => {
   const { lyrics, className, onLineSelected, onBlockSelected } = props;
 
   const containerId = useId();
+  const currSelection = useSelection({ selectionContainerId: containerId });
 
   function onDoneSelectLyrics() {
-    const selection = window.getSelection();
-
-    // If the mouse event was simply just clicking on the container
-    if (!selection || selection.type !== "Range") {
+    console.log(currSelection);
+    if (!currSelection) {
       return;
     }
 
-    // If the selection is not within the container
-    if (
-      !selection.anchorNode?.parentElement?.parentElement ||
-      selection.anchorNode.parentElement.parentElement.id !== containerId
-    ) {
-      return;
-    }
-
-    const selectedText = selection.toString();
-    const range = selection.getRangeAt(0);
+    const { selection, range, selectedText } = currSelection;
 
     // We check what the common ancestor is for the selection to determine if
     // the user's selection is only one line or if it spans multiple lines.
@@ -102,14 +93,13 @@ export const Lyrics = (props: LyricsProps) => {
     if (commonAncestorNodeType === 1 && onBlockSelected) {
       // The ancestor node is an element (the lyrics container), which means we
       // have a selection that spans multiple lines
-      // TODO
       const numberOfLines = selection.toString().split("\n").length;
       const lyricSectionIdxs: number[] = [];
 
-      let startingElement = range.startContainer.parentElement as HTMLParagraphElement;
+      let startEl = range.startContainer.parentElement as HTMLParagraphElement;
       for (let i = 0; i < numberOfLines; i++) {
         const lyricSectionIdx = lyrics.findIndex((curr) => {
-          return curr.type === "line" && curr.id === startingElement.dataset.lyricId;
+          return curr.type === "line" && curr.id === startEl.dataset.lyricId;
         });
 
         if (lyricSectionIdx < 0) {
@@ -117,7 +107,7 @@ export const Lyrics = (props: LyricsProps) => {
         }
 
         lyricSectionIdxs.push(lyricSectionIdx);
-        startingElement = startingElement.nextSibling as HTMLParagraphElement;
+        startEl = startEl.nextSibling as HTMLParagraphElement;
       }
 
       lyricSectionIdxs.sort();
