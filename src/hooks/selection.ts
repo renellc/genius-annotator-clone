@@ -7,7 +7,7 @@ type SelectionData = {
 };
 
 export function useSelection(input: {
-    selectionContainerId?: string
+  selectionContainerId?: string;
 }): SelectionData | null {
   const { selectionContainerId } = input;
 
@@ -22,11 +22,11 @@ export function useSelection(input: {
     }
 
     if (container) {
-        const hasAnchorNode = container.contains(selection.anchorNode);
-        const hasFocusNode = container.contains(selection.focusNode);
-        if (!hasAnchorNode || !hasFocusNode) {
-          return;
-        }
+      const hasAnchorNode = container.contains(selection.anchorNode);
+      const hasFocusNode = container.contains(selection.focusNode);
+      if (!hasAnchorNode || !hasFocusNode) {
+        return;
+      }
     }
 
     setSelection({
@@ -38,7 +38,7 @@ export function useSelection(input: {
 
   useEffect(() => {
     if (!selectionContainerId) {
-        return;
+      return;
     }
 
     setContainer(document.getElementById(selectionContainerId));
@@ -47,9 +47,8 @@ export function useSelection(input: {
   useEffect(() => {
     document.addEventListener("selectionchange", onSelectionChange);
     return () =>
-        document.removeEventListener("selectionchange", onSelectionChange);
+      document.removeEventListener("selectionchange", onSelectionChange);
   }, []);
 
   return selection;
-};
-
+}

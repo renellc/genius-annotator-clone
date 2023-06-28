@@ -21,7 +21,7 @@ const LyricSection = (props: LyricLineProps) => {
         return <p data-lyric-id={id}>{text}</p>;
       }
 
-      const unseletedText = text.split(annotation.selectedText, 2)
+      const unseletedText = text.split(annotation.selectedText, 2);
 
       return (
         <p data-lyric-id={id}>
@@ -40,14 +40,15 @@ const LyricSection = (props: LyricLineProps) => {
       const { text, annotation } = section;
 
       // This should always be the same length as the text array
-      const lines = annotation?.selectedText
-        .split("\n")
-        .filter((curr) => curr !== "")
-        .map((selectedText, idx) => ({
-          selectedText,
-          line: text[idx],
-          unselectedParts: text[idx].text.split(selectedText, 2),
-        })) || [];
+      const lines =
+        annotation?.selectedText
+          .split("\n")
+          .filter((curr) => curr !== "")
+          .map((selectedText, idx) => ({
+            selectedText,
+            line: text[idx],
+            unselectedParts: text[idx].text.split(selectedText, 2),
+          })) || [];
 
       return (
         <div className="group flex flex-col">
@@ -61,7 +62,6 @@ const LyricSection = (props: LyricLineProps) => {
                 className="cursor-pointer bg-gray-300 py-1 group-hover:bg-gray-400"
                 onClick={() => onAnnotationClick && onAnnotationClick(section)}
               >
-
                 {line.selectedText}
               </span>
               {line.unselectedParts[1]}
@@ -153,7 +153,10 @@ export const Lyrics = (props: LyricsProps) => {
         return;
       }
 
-      onLineSelected({ lyric: lyrics[lyricSection] as LyricSectionLine, selectedText });
+      onLineSelected({
+        lyric: lyrics[lyricSection] as LyricSectionLine,
+        selectedText,
+      });
     } else {
       // We just return because we are only concerned with the parent being an
       // element or a text node
@@ -181,4 +184,3 @@ export const Lyrics = (props: LyricsProps) => {
     </div>
   );
 };
-
