@@ -52,7 +52,7 @@ const createAnnotationStore = immer<
       }),
     addAnnotationToBlock: (input) => set((state) => {
       const { fromLineNumberIdx, toLineNumberIdx, selectedText, annotation } = input;
-      if (fromLineNumberIdx >= toLineNumberIdx) {
+      if (fromLineNumberIdx > toLineNumberIdx) {
         return;
       }
 

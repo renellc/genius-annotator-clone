@@ -21,33 +21,50 @@ const LyricSection = (props: LyricLineProps) => {
         return <p data-lyric-id={id}>{text}</p>;
       }
 
+      const unseletedText = text.split(annotation.selectedText, 2)
+
       return (
         <p data-lyric-id={id}>
+          {unseletedText[0]}
           <span
             className="cursor-pointer bg-gray-300 py-1 hover:bg-gray-400"
             onClick={() => onAnnotationClick && onAnnotationClick(section)}
           >
-            {text}
+            {annotation.selectedText}
           </span>
+          {unseletedText[1]}
         </p>
       );
     }
     case "block": {
-      const { text } = section;
+      const { text, annotation } = section;
+
+      // This should always be the same length as the text array
+      const lines = annotation?.selectedText
+        .split("\n")
+        .filter((curr) => curr !== "")
+        .map((selectedText, idx) => ({
+          selectedText,
+          line: text[idx],
+          unselectedParts: text[idx].text.split(selectedText, 2),
+        })) || [];
+
       return (
         <div className="group flex flex-col">
-          {text.map((line) => (
+          {lines.map((line) => (
             <p
-              key={line.id}
-              data-lyric-id={line.id}
+              key={line.line.id}
+              data-lyric-id={line.line.id}
             >
+              {line.unselectedParts[0]}
               <span
                 className="cursor-pointer bg-gray-300 py-1 group-hover:bg-gray-400"
                 onClick={() => onAnnotationClick && onAnnotationClick(section)}
               >
 
-                {line.text}
+                {line.selectedText}
               </span>
+              {line.unselectedParts[1]}
             </p>
           ))}
         </div>
