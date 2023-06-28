@@ -1,18 +1,18 @@
 import { useId } from "react";
 
-import { LyricSectionLine, type LyricSection } from "@/lib";
+import type { LyricSectionLine, LyricSection } from "@/lib";
 
 interface LyricLineProps {
-  lyric: LyricSection;
+  section: LyricSection;
   onAnnotationClick?: (lyric: LyricSection) => void;
 }
 
-const LyricLine = (props: LyricLineProps) => {
-  const { lyric, onAnnotationClick } = props;
+const LyricSection = (props: LyricLineProps) => {
+  const { section, onAnnotationClick } = props;
 
-  switch (lyric.type) {
+  switch (section.type) {
     case "line": {
-      const { id, text, annotation } = lyric;
+      const { id, text, annotation } = section;
 
       if (text === "") {
         return <div className="my-6"></div>;
@@ -24,7 +24,7 @@ const LyricLine = (props: LyricLineProps) => {
         <p data-lyric-id={id}>
           <span
             className="cursor-pointer bg-gray-300 py-1 hover:bg-gray-400"
-            onClick={() => onAnnotationClick && onAnnotationClick(lyric)}
+            onClick={() => onAnnotationClick && onAnnotationClick(section)}
           >
             {text}
           </span>
@@ -32,7 +32,7 @@ const LyricLine = (props: LyricLineProps) => {
       );
     }
     case "block": {
-      const { text } = lyric;
+      const { text } = section;
       return (
         <div className="group flex flex-col">
           {text.map((line) => (
@@ -42,7 +42,7 @@ const LyricLine = (props: LyricLineProps) => {
             >
               <span
                 className="cursor-pointer bg-gray-300 py-1 group-hover:bg-gray-400"
-                onClick={() => onAnnotationClick && onAnnotationClick(lyric)}
+                onClick={() => onAnnotationClick && onAnnotationClick(section)}
               >
 
                 {line.text}
@@ -166,9 +166,9 @@ export const Lyrics = (props: LyricsProps) => {
       onMouseUp={onDoneSelectLyrics}
     >
       {lyrics.map((lyric) => (
-        <LyricLine
+        <LyricSection
           key={lyric.id}
-          lyric={lyric}
+          section={lyric}
         />
       ))}
     </div>
