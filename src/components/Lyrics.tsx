@@ -3,12 +3,18 @@ import { useId } from "react";
 import type { LyricSectionLine, LyricSection } from "@/lib";
 import { useSelection } from "../hooks";
 
-interface LyricLineProps {
+interface LyricSectionProps {
   section: LyricSection;
-  onAnnotationClick?: (lyric: LyricSection) => void;
+  onAnnotationClick?: (input: {
+    lyric: LyricSection;
+    nodePosition?: {
+      offsetTop: number;
+      offsetLeft: number;
+    };
+  }) => void;
 }
 
-const LyricSection = (props: LyricLineProps) => {
+const LyricSection = (props: LyricSectionProps) => {
   const { section, onAnnotationClick } = props;
 
   switch (section.type) {
@@ -28,7 +34,23 @@ const LyricSection = (props: LyricLineProps) => {
           {unseletedText[0]}
           <span
             className="cursor-pointer bg-gray-300 py-1 hover:bg-gray-400"
-            onClick={() => onAnnotationClick && onAnnotationClick(section)}
+            onClick={() => {
+              if (!onAnnotationClick) {
+                return;
+              }
+
+              const el = document.querySelectorAll(
+                `[data-lyric-id='${id}']`
+              )[0]! as HTMLElement;
+
+              onAnnotationClick({
+                lyric: section,
+                nodePosition: {
+                  offsetTop: el.offsetTop,
+                  offsetLeft: el.offsetLeft,
+                },
+              });
+            }}
           >
             {annotation.selectedText}
           </span>
@@ -85,10 +107,23 @@ interface LyricsProps {
     toLineNumberIdx: number;
     selectedText: string;
   }) => void;
+  onAnnotationClicked?: (input: {
+    lyric: LyricSection;
+    nodePosition?: {
+      offsetTop: number;
+      offsetLeft: number;
+    };
+  }) => void;
 }
 
 export const Lyrics = (props: LyricsProps) => {
-  const { lyrics, className, onLineSelected, onBlockSelected } = props;
+  const {
+    lyrics,
+    className,
+    onLineSelected,
+    onBlockSelected,
+    onAnnotationClicked,
+  } = props;
 
   const containerId = useId();
   const currSelection = useSelection({ selectionContainerId: containerId });
@@ -179,6 +214,10 @@ export const Lyrics = (props: LyricsProps) => {
         <LyricSection
           key={lyric.id}
           section={lyric}
+          onAnnotationClick={(lyric) => {
+            console.log("clicked");
+            onAnnotationClicked && onAnnotationClicked(lyric);
+          }}
         />
       ))}
     </div>

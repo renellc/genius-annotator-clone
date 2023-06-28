@@ -1,5 +1,11 @@
-import { Button, CreateAnnotationModal, CreateAnnotationModalProps, Lyrics } from "@/components";
-import { LyricSectionLine } from "@/lib";
+import {
+  Annotation,
+  Button,
+  CreateAnnotationModal,
+  CreateAnnotationModalProps,
+  Lyrics,
+} from "@/components";
+import { LyricSection, LyricSectionLine } from "@/lib";
 import { useCreateAnnotationStore } from "@/stores";
 import { useState } from "react";
 
@@ -15,17 +21,24 @@ export const AddAnnotations = () => {
   const [createAnnotationModalOpen, setCreateAnnotationModalOpen] =
     useState(false);
 
-  const [selectedLyric, setSelectedLyric] = useState<
-    {
-      lyric: LyricSectionLine | LyricSectionLine[];
-      selectedText: string;
-      fromLineNumberIdx?: number,
-      toLineNumberIdx?: number
-    } | null>(null);
+  const [currSelection, setCurrentSelection] = useState<{
+    lyric: LyricSectionLine | LyricSectionLine[];
+    selectedText: string;
+    fromLineNumberIdx?: number;
+    toLineNumberIdx?: number;
+  } | null>(null);
 
-  function onSaveAnnotation(input: Parameters<
-    CreateAnnotationModalProps["onSaveAnnotation"]
-  >[0]) {
+  const [selectedAnnotation, setSelectedAnnotation] = useState<{
+    lyric: LyricSection;
+    nodePosition?: {
+      offsetTop: number;
+      offsetLeft: number;
+    };
+  } | null>(null);
+
+  function onSaveAnnotation(
+    input: Parameters<CreateAnnotationModalProps["onSaveAnnotation"]>[0]
+  ) {
     const { selectedLyric, annotation } = input;
     if (selectedLyric === null || annotation === "") {
       return;
@@ -42,11 +55,11 @@ export const AddAnnotations = () => {
       addAnnotationLine(
         selectedLyric.lyric as LyricSectionLine,
         selectedLyric.selectedText,
-        annotation,
+        annotation
       );
     }
 
-    setSelectedLyric(null);
+    setCurrentSelection(null);
     setCreateAnnotationModalOpen(false);
   }
 
@@ -61,21 +74,41 @@ export const AddAnnotations = () => {
         className="w-full"
         onLineSelected={({ lyric, selectedText }) => {
           setCreateAnnotationModalOpen(true);
-          setSelectedLyric({ lyric, selectedText });
+          setCurrentSelection({ lyric, selectedText });
         }}
-        onBlockSelected={({ fromLineNumberIdx, toLineNumberIdx, selectedText }) => {
+        onBlockSelected={({
+          fromLineNumberIdx,
+          toLineNumberIdx,
+          selectedText,
+        }) => {
           setCreateAnnotationModalOpen(true);
-          console.log(fromLineNumberIdx, toLineNumberIdx);
-          setSelectedLyric({
-            lyric: lyrics.slice(fromLineNumberIdx, toLineNumberIdx) as LyricSectionLine[],
+          setCurrentSelection({
+            lyric: lyrics.slice(
+              fromLineNumberIdx,
+              toLineNumberIdx
+            ) as LyricSectionLine[],
             selectedText,
             fromLineNumberIdx,
             toLineNumberIdx,
           });
         }}
+        onAnnotationClicked={(lyric) => {
+          if (lyric.lyric.id === selectedAnnotation?.lyric.id) {
+            setSelectedAnnotation(null);
+          } else {
+            setSelectedAnnotation(lyric);
+          }
+        }}
       />
 
-      <div className="w-full flex justify-center">Annotation View</div>
+      <div className="w-full flex justify-center relative">
+        {selectedAnnotation && (
+          <Annotation
+            lyricSection={selectedAnnotation}
+            onClose={() => setSelectedAnnotation(null)}
+          />
+        )}
+      </div>
 
       <div className="col-span-2 flex items-center justify-center">
         <Button>Save</Button>
@@ -83,9 +116,9 @@ export const AddAnnotations = () => {
 
       <CreateAnnotationModal
         modalId="createAnnotationModal"
-        open={createAnnotationModalOpen && selectedLyric !== null}
+        open={createAnnotationModalOpen && currSelection !== null}
         onClose={() => setCreateAnnotationModalOpen(false)}
-        selectedLyric={selectedLyric}
+        selectedLyric={currSelection}
         onSaveAnnotation={onSaveAnnotation}
       />
     </div>
